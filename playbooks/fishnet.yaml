@@ -1,0 +1,35 @@
+- name: Fishnet
+  hosts: servers
+  tags: fishnet
+  tasks:
+    - name: Create Fishnet quadlet file
+      containers.podman.podman_container:
+        name: fishnet
+        image: docker.io/niklasf/fishnet:2
+        state: quadlet
+        env:
+          KEY: !vault |
+            $ANSIBLE_VAULT;1.1;AES256
+            34313963303333383935396666303735653366366565303862386463323839663039313066616365
+            3137383238663364356636653136373139663963346437660a616136363737313965333262396538
+            39633663363939636133313134326532366637323065313666623966393438376265616664636335
+            3737393166356435620a306535366134643834633031376564353761636565313431363764343836
+            3863
+        quadlet_options:
+          - "AutoUpdate=registry"
+          - "Pull=newer"
+          - |
+            [Install]
+            WantedBy=default.target
+        notify:
+          - Restart Fishnet systemd
+    - name: Enable Fishnet systemd
+      ansible.builtin.systemd_service:
+        name: fishnet.service
+        enabled: true
+  handlers:
+    - name: Restart Fishnet systemd
+      ansible.builtin.systemd_service:
+        name: fishnet.service
+        state: restarted
+        daemon_reload: true

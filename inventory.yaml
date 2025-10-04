@@ -1,0 +1,6 @@
+servers:
+  hosts:
+    pruna:
+      ansible_host: pruna.freopen.org
+      ansible_user: core
+      ansible_become: true

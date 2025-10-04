@@ -1,0 +1,4 @@
+- name: Enable zram
+  ansible.builtin.import_playbook: playbooks/zram.yaml
+- name: Fishnet
+  ansible.builtin.import_playbook: playbooks/fishnet.yaml

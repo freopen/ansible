@@ -21,12 +21,8 @@
           - |
             [Install]
             WantedBy=default.target
-        notify:
-          - Restart Fishnet systemd
-    - name: Enable Fishnet systemd
-      ansible.builtin.systemd_service:
-        name: fishnet.service
-        enabled: true
+      notify:
+        - Restart Fishnet systemd
   handlers:
     - name: Restart Fishnet systemd
       ansible.builtin.systemd_service:

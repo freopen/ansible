@@ -2,3 +2,5 @@
   ansible.builtin.import_playbook: playbooks/zram.yaml
 - name: Fishnet
   ansible.builtin.import_playbook: playbooks/fishnet.yaml
+- name: Grafana Alloy
+  ansible.builtin.import_playbook: playbooks/grafana-alloy/playbook.yaml

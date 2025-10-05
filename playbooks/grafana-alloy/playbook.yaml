@@ -1,0 +1,61 @@
+- name: Install Grafana Alloy
+  hosts: servers
+  tags: alloy
+  tasks:
+    - name: Write Alloy config
+      ansible.builtin.copy:
+        src: etc_alloy/
+        dest: /etc/alloy
+        mode: "0644"
+        directory_mode: "0755"
+      notify:
+        - Restart Alloy systemd
+    - name: Create Alloy Quadlet file
+      containers.podman.podman_container:
+        name: alloy
+        image: docker.io/grafana/alloy:latest
+        state: quadlet
+        command:
+          - run
+          - --server.http.listen-addr=0.0.0.0:12345
+          - --storage.path=/var/lib/alloy/data
+          - /etc/alloy/config.alloy
+        env:
+          GCLOUD_RW_API_KEY: !vault |
+            $ANSIBLE_VAULT;1.1;AES256
+            32353461643231303662396537393562363133626533313364363535336131323465616565396231
+            3331373465613135376333663630343663323834343135390a373464333531366264363162326661
+            64356462363564646135616231656164383763613661316431626364396165613564363939313330
+            6261386332303737650a323237346236623962636136666532633536653035633431353437353730
+            30333033316262333161643135663334383836636165306236346364386130616636646466303330
+            31613936313630623261333230633231316362656566636166326266373163303233306330346637
+            65643138656133613130373561613264363635363630363836633337656338656166653135376537
+            61313138373833616230306333313865363337303862356435363562646438626564653566303133
+            61653062373162313464376536633330393139646366316334623434366337363965393437333264
+            36623964656565383537373361653866323066666433393630323436333735356234626235366633
+            633534313664326465393564663237636362
+        volumes:
+          - /etc/alloy:/etc/alloy:ro
+          - alloy_data:/var/lib/alloy/data
+          - /proc:/host/proc:ro
+          - /sys:/host/sys:ro
+          - /run:/host/run:ro
+          - /:/host/root:ro
+        privileged: true
+        user: root
+        publish:
+          - 127.0.0.1:12345:12345
+        quadlet_options:
+          - "AutoUpdate=registry"
+          - "Pull=newer"
+          - |
+            [Install]
+            WantedBy=default.target
+      notify:
+        - Restart Alloy systemd
+  handlers:
+    - name: Restart Alloy systemd
+      ansible.builtin.systemd_service:
+        name: alloy.service
+        state: restarted
+        daemon_reload: true
